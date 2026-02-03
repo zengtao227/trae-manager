@@ -9,7 +9,10 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "TraeManager",
-            path: "Sources"
+            path: "Sources",
+            linkerSettings: [
+                .linkedLibrary("sqlite3")
+            ]
         )
     ]
 )

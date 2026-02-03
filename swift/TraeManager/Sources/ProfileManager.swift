@@ -1,4 +1,5 @@
 import Foundation
+import SQLite3
 
 struct Profile {
     let name: String
@@ -167,6 +168,62 @@ class ProfileManager {
         openTrae()
     }
     
+    func renameProfile(from oldName: String, to newName: String) -> Bool {
+        guard isValidProfileName(newName) else { return false }
+        
+        let oldPath = profilesDir.appendingPathComponent(oldName)
+        let newPath = profilesDir.appendingPathComponent(newName)
+        
+        // Check if new name already exists
+        if FileManager.default.fileExists(atPath: newPath.path) {
+            return false
+        }
+        
+        // Check if renaming active profile
+        let currentProfile = getCurrentProfile()
+        let isActive = oldName == currentProfile
+        
+        do {
+            try FileManager.default.moveItem(at: oldPath, to: newPath)
+            
+            // Update symlink if this was the active profile
+            if isActive {
+                try? FileManager.default.removeItem(at: traePath)
+                try FileManager.default.createSymbolicLink(at: traePath, withDestinationURL: newPath)
+                try newName.write(to: currentFile, atomically: true, encoding: .utf8)
+            }
+            
+            return true
+        } catch {
+            print("Failed to rename profile: \(error)")
+            return false
+        }
+    }
+    
+    func duplicateProfile(from sourceName: String, to newName: String) async -> Bool {
+        guard isValidProfileName(newName) else { return false }
+        
+        let sourcePath = profilesDir.appendingPathComponent(sourceName)
+        let newPath = profilesDir.appendingPathComponent(newName)
+        
+        // Check if new name already exists
+        if FileManager.default.fileExists(atPath: newPath.path) {
+            return false
+        }
+        
+        guard FileManager.default.fileExists(atPath: sourcePath.path) else {
+            return false
+        }
+        
+        do {
+            try FileManager.default.copyItem(at: sourcePath, to: newPath)
+            return true
+        } catch {
+            print("Failed to duplicate profile: \(error)")
+            return false
+        }
+    }
+    
     func deleteProfile(name: String) -> Bool {
         let currentProfile = getCurrentProfile()
         if name == currentProfile {
@@ -182,6 +239,65 @@ class ProfileManager {
             print("Failed to delete profile: \(error)")
             return false
         }
+    }
+    
+    func backupAllProfiles(to destination: URL) async -> Bool {
+        do {
+            // Create backup directory
+            try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+            
+            // Copy all profiles
+            let profiles = listProfiles()
+            for profile in profiles {
+                let destPath = destination.appendingPathComponent(profile.name)
+                try FileManager.default.copyItem(at: profile.path, to: destPath)
+            }
+            
+            // Create metadata file
+            let metadata: [String: Any] = [
+                "backupDate": ISO8601DateFormatter().string(from: Date()),
+                "profileCount": profiles.count,
+                "profiles": profiles.map { $0.name }
+            ]
+            let metadataData = try JSONSerialization.data(withJSONObject: metadata, options: .prettyPrinted)
+            try metadataData.write(to: destination.appendingPathComponent("backup_info.json"))
+            
+            return true
+        } catch {
+            print("Failed to backup profiles: \(error)")
+            return false
+        }
+    }
+    
+    // MARK: - Chat History Analysis
+    
+    func getChatCount(for profilePath: URL) -> Int? {
+        let dbPath = profilePath.appendingPathComponent("User/globalStorage/state.vscdb")
+        
+        guard FileManager.default.fileExists(atPath: dbPath.path) else {
+            return nil
+        }
+        
+        var db: OpaquePointer?
+        guard sqlite3_open_v2(dbPath.path, &db, SQLITE_OPEN_READONLY, nil) == SQLITE_OK else {
+            return nil
+        }
+        defer { sqlite3_close(db) }
+        
+        // Count chat-related keys
+        let query = "SELECT COUNT(*) FROM ItemTable WHERE key LIKE '%ai-chat:session%'"
+        var stmt: OpaquePointer?
+        
+        guard sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK else {
+            return nil
+        }
+        defer { sqlite3_finalize(stmt) }
+        
+        if sqlite3_step(stmt) == SQLITE_ROW {
+            return Int(sqlite3_column_int(stmt, 0))
+        }
+        
+        return nil
     }
     
     // MARK: - TRAE Control
@@ -247,6 +363,7 @@ class ProfileManager {
     // MARK: - Helpers
     
     func isValidProfileName(_ name: String) -> Bool {
+        guard !name.isEmpty else { return false }
         let regex = try? NSRegularExpression(pattern: "^[a-zA-Z0-9_-]+$")
         let range = NSRange(name.startIndex..., in: name)
         return regex?.firstMatch(in: name, range: range) != nil

@@ -90,12 +90,12 @@ TRAE Manager 是一个用于管理 TRAE IDE 多账号切换和聊天记录备份
 - [x] 状态指示器
 - [x] 保存/创建 Profile 对话框
 
-### Phase 3: 高级功能
-- [ ] Profile 重命名
-- [ ] 聊天记录预览
-- [ ] 自动检测 Token 用尽提示切换
-- [ ] 定时备份
-- [ ] 开机自启动
+### Phase 3: 高级功能 ✅
+- [x] Profile 重命名
+- [x] 聊天记录计数（SQlite）
+- [ ] 自动检测 Token 用尽提示切换（需进一步研究 API 响应）
+- [x] 批量备份
+- [x] 开机自启动
 
 ---
 
@@ -168,6 +168,14 @@ trae-mgr help
   - 实现 ProfileManager 核心逻辑
   - 实现菜单栏 UI（Profile 列表、切换、保存、创建）
   - 构建成功 TraeManager.app
+
+---
+
+- ✅ Phase 3: 高级功能
+  - 实现 Profile 重命名、复制、删除
+  - 实现开机自启动
+  - 实现聊天会话计数（SQlite）
+  - 实现全量备份
 
 ---
 
