@@ -75,12 +75,13 @@ TRAE Manager 是一个用于管理 TRAE IDE 多账号切换和聊天记录备份
 
 ## 🚀 开发阶段
 
-### Phase 1: 核心 CLI 工具 (MVP)
+### Phase 1: 核心 CLI 工具 (MVP) ✅
 - [x] 创建项目结构
-- [ ] 实现 Profile 管理（create, list, delete）
-- [ ] 实现账号切换（switch）
-- [ ] 实现当前会话备份（save）
-- [ ] 进程检测与控制
+- [x] 实现 Profile 管理（create, list, delete）
+- [x] 实现账号切换（switch）
+- [x] 实现当前会话备份（save）
+- [x] 进程检测与控制
+- [x] 推送到 GitHub
 
 ### Phase 2: 菜单栏应用
 - [ ] Swift 菜单栏 UI
