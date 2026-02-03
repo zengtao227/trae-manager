@@ -9,18 +9,48 @@
 - **One-Click Operation** - Simple menu bar interface for instant switching
 - **Profile Backup** - Save current session state anytime
 
-## 🚀 Quick Start
+---
+
+## 🖥️ Menu Bar App (Recommended)
+
+A native macOS menu bar application for the best experience.
+
+### Build & Install
+
+```bash
+# Build the app
+cd ~/trae-manager/swift/TraeManager
+./build.sh
+
+# Install to Applications (optional)
+cp -r build/TraeManager.app /Applications/
+
+# Or run directly
+open build/TraeManager.app
+```
+
+### Menu Bar Features
+- 🔄 One-click profile switching
+- 💾 Save current session as profile
+- ➕ Create new empty profiles
+- 📊 View TRAE running status
+- 🔔 Desktop notifications
+
+![macOS](https://img.shields.io/badge/macOS-13.0+-blue)
+
+---
+
+## 🖥️ CLI Tool (Alternative)
+
+A command-line tool for scripting and automation.
 
 ### Installation
 
 ```bash
-# Clone or download to your preferred location
-cd ~/trae-manager
-
 # Make the CLI tool executable
-chmod +x scripts/trae-mgr
+chmod +x ~/trae-manager/scripts/trae-mgr
 
-# Optional: Add to PATH
+# Add to PATH (optional)
 echo 'export PATH="$HOME/trae-manager/scripts:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
@@ -44,7 +74,7 @@ trae-mgr switch my_google_account_2
 trae-mgr current
 ```
 
-## 📋 Commands
+### CLI Commands
 
 | Command | Description |
 |---------|-------------|
@@ -54,7 +84,11 @@ trae-mgr current
 | `trae-mgr switch <name>` | Switch to a specific profile |
 | `trae-mgr delete <name>` | Delete a profile |
 | `trae-mgr current` | Show current active profile |
+| `trae-mgr backup` | Backup original TRAE data |
+| `trae-mgr restore` | Restore original TRAE data |
 | `trae-mgr help` | Display help information |
+
+---
 
 ## 🔧 How It Works
 
@@ -73,16 +107,46 @@ TRAE Manager uses a **profile-based symlink approach**:
 ~/Library/Application Support/Trae  →  ~/.trae-manager/profiles/account_google_1
 ```
 
+---
+
 ## ⚠️ Important Notes
 
-1. **TRAE must be closed** before switching profiles
+1. **TRAE will restart** when switching profiles (automatic)
 2. **Backup your data** before first use
-3. Requires **macOS 13.0+**
+3. Requires **macOS 13.0+** (Ventura or later)
+4. First switch will automatically backup your original data as `default` profile
+
+---
 
 ## 🛠️ Development
 
 See [DEVELOPMENT_PLAN.md](./DEVELOPMENT_PLAN.md) for detailed development roadmap.
 
+### Project Structure
+
+```
+trae-manager/
+├── README.md                 # This file
+├── DEVELOPMENT_PLAN.md       # Development roadmap
+├── scripts/
+│   └── trae-mgr              # CLI tool (Bash)
+└── swift/
+    └── TraeManager/
+        ├── Package.swift
+        ├── build.sh
+        └── Sources/
+            ├── TraeManagerApp.swift
+            └── ProfileManager.swift
+```
+
+---
+
 ## 📜 License
 
 MIT License
+
+---
+
+## 🙏 Acknowledgments
+
+Inspired by [Antigravity Manager](https://github.com/Draculabo/AntigravityManager) and [antigravity-switcher](https://github.com/nhonn/antigravity-switcher).

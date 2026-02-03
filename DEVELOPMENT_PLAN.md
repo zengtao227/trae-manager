@@ -83,17 +83,19 @@ TRAE Manager 是一个用于管理 TRAE IDE 多账号切换和聊天记录备份
 - [x] 进程检测与控制
 - [x] 推送到 GitHub
 
-### Phase 2: 菜单栏应用
-- [ ] Swift 菜单栏 UI
-- [ ] Profile 列表展示
-- [ ] 一键切换功能
-- [ ] 状态指示器
+### Phase 2: 菜单栏应用 ✅
+- [x] Swift 菜单栏 UI
+- [x] Profile 列表展示
+- [x] 一键切换功能
+- [x] 状态指示器
+- [x] 保存/创建 Profile 对话框
 
 ### Phase 3: 高级功能
 - [ ] Profile 重命名
 - [ ] 聊天记录预览
 - [ ] 自动检测 Token 用尽提示切换
 - [ ] 定时备份
+- [ ] 开机自启动
 
 ---
 
@@ -105,9 +107,15 @@ trae-manager/
 ├── README.md                 # 使用说明
 ├── scripts/
 │   └── trae-mgr              # CLI 工具 (Bash)
-├── swift/                    # Swift 菜单栏应用 (Phase 2)
-│   ├── TraeManager/
-│   └── Package.swift
+├── swift/                    # Swift 菜单栏应用
+│   └── TraeManager/
+│       ├── Package.swift     # Swift Package 配置
+│       ├── build.sh          # 构建脚本
+│       ├── Sources/
+│       │   ├── TraeManagerApp.swift   # 主应用和 UI
+│       │   └── ProfileManager.swift   # Profile 管理逻辑
+│       └── build/
+│           └── TraeManager.app        # 编译产物
 └── test/                     # 测试脚本
 ```
 
@@ -155,7 +163,11 @@ trae-mgr help
 - 项目初始化
 - 完成技术调研
 - 创建开发计划文档
-- 开始实现 CLI MVP
+- ✅ Phase 1: 完成 CLI MVP
+- ✅ Phase 2: 完成 Swift 菜单栏应用
+  - 实现 ProfileManager 核心逻辑
+  - 实现菜单栏 UI（Profile 列表、切换、保存、创建）
+  - 构建成功 TraeManager.app
 
 ---
 
