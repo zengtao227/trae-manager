@@ -26,6 +26,11 @@ mkdir -p "$APP_BUNDLE/Contents/Resources"
 # Copy binary
 cp ".build/release/$APP_NAME" "$APP_BUNDLE/Contents/MacOS/"
 
+# Copy icon if exists
+if [ -f "TraeManager.icns" ]; then
+    cp "TraeManager.icns" "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
+fi
+
 # Create Info.plist
 cat > "$APP_BUNDLE/Contents/Info.plist" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -44,6 +49,8 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << EOF
     <string>TRAE Manager</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundleShortVersionString</key>
     <string>1.0.0</string>
     <key>CFBundleVersion</key>

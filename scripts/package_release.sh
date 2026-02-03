@@ -23,10 +23,10 @@ cd "$PROJECT_ROOT/swift/TraeManager"
 echo "📋 Copying artifacts..."
 cp -r "$SWIFT_BUILD_DIR/TraeManager.app" "$RELEASE_DIR/"
 
-# 4. Create macOS Zip
-cd "$RELEASE_DIR"
-zip -r "TraeManager-macOS.zip" "TraeManager.app"
-rm -rf "TraeManager.app"
+# 4. Create macOS Zip (Skipped per user request)
+# cd "$RELEASE_DIR"
+# zip -r "TraeManager-macOS.zip" "TraeManager.app"
+# rm -rf "TraeManager.app"
 
 # 5. Copy Scripts (CLI & Windows)
 mkdir -p "$RELEASE_DIR/scripts"

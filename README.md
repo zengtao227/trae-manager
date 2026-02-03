@@ -1,184 +1,152 @@
 # TRAE Manager
 
-🔄 A tool for managing multiple TRAE IDE accounts and preserving chat history. 
-**Available for macOS (Menu Bar App & CLI) and Windows (PowerShell CLI).**
-
-## ✨ Features
-
-- **Multi-Account Switching** - Seamlessly switch between TRAE accounts to maximize Token usage
-- **Chat History Preservation** - Each profile maintains its own chat history
-- **One-Click Operation** - Simple menu bar interface for instant switching
-- **Profile Backup** - Save current session state anytime
-
----
-
-## 📦 Downloads
-
-Check the [**Releases**](https://github.com/zengtao227/trae-manager/releases) page (if available) or look into the `release/` directory in the repository.
+<p align="center">
+  <img src="scripts/TraeManager.png" alt="TRAE Manager Icon" width="128" />
+  <br>
+  <b>The Ultimate Account Switcher for TRAE IDE</b>
+  <br>
+  <br>
+  <a href="https://github.com/zengtao227/trae-manager/issues">Report Bug</a>
+  ·
+  <a href="https://github.com/zengtao227/trae-manager/pulls">Request Feature</a>
+</p>
 
 ---
 
-## 🖥️ Menu Bar App (macOS Only)
+## 📖 Introduction
 
-A native macOS menu bar application for the best experience.
+**TRAE Manager** is a powerful utility designed to help developers manage multiple accounts in the [TRAE IDE](https://trae.ai). By allowing seamless switching between different profiles, you can maximize your AI model token quotas and keep your chat history organized and isolated for each account.
 
-### Build & Install
+Whether you are a heavy user hitting daily limits or a consultant managing separate workspaces, TRAE Manager provides the flexibility you need on both **macOS** and **Windows**.
 
+## ✨ Why Use TRAE Manager?
+
+- **🚀 Maximize Token Limits**: Instantly switch to a secondary account when you hit your AI quota limit.
+- **💬 Preserve Chat History**: Every profile has its own isolated chat history database. Switching accounts never wipes your past conversations.
+- **🛡️ Data Safety**: Your original data is automatically backed up before the first switch.
+- **⚡ Fast & Native**: 
+  - **macOS**: A dedicated Menu Bar App for one-click switching.
+  - **Windows**: A robust PowerShell script for easy management.
+
+---
+
+## 📦 Downloads & Installation
+
+### 🍎 macOS (App & CLI)
+
+**Option 1: Menu Bar App (Recommended)**
+1. Go to the `release/` directory in this repository.
+2. Drag **`TraeManager.app`** to your **Applications** folder.
+3. Open the app. You will see a 👥 icon in your menu bar.
+
+**Option 2: Build from Source**
 ```bash
-# Build the app
 cd ~/trae-manager/swift/TraeManager
 ./build.sh
-
-# Install to Applications (optional)
-cp -r build/TraeManager.app /Applications/
-
-# Or run directly
 open build/TraeManager.app
 ```
 
-### Menu Bar Features
-- 🔄 One-click profile switching
-- 💾 Save current session as profile
-- ➕ Create new empty profiles
-- 📊 View TRAE running status
-- 🔔 Desktop notifications
-
-![macOS](https://img.shields.io/badge/macOS-13.0+-blue)
-
----
-
-## 🖥️ CLI Tool (Alternative)
-
-A command-line tool for scripting and automation.
-
-### Installation
-
-```bash
-# Make the CLI tool executable
-chmod +x ~/trae-manager/scripts/trae-mgr
-
-# Add to PATH (optional)
-echo 'export PATH="$HOME/trae-manager/scripts:$PATH"' >> ~/.zshrc
-source ~/.zshrc
-```
-
-### Basic Usage
-
-```bash
-# Save your current TRAE session as a profile
-trae-mgr save my_google_account_1
-
-# Create an empty profile for a new account
-trae-mgr create my_google_account_2
-
-# List all profiles
-trae-mgr list
-
-# Switch to a different profile (will restart TRAE)
-trae-mgr switch my_google_account_2
-
-# Show current active profile
-trae-mgr current
-```
-
-### CLI Commands
-
-| Command | Description |
-|---------|-------------|
-| `trae-mgr list` | List all saved profiles |
-| `trae-mgr create <name>` | Create an empty profile |
-| `trae-mgr save <name>` | Save current session as a profile |
-| `trae-mgr switch <name>` | Switch to a specific profile |
-| `trae-mgr delete <name>` | Delete a profile |
-| `trae-mgr current` | Show current active profile |
-| `trae-mgr backup` | Backup original TRAE data |
-| `trae-mgr restore` | Restore original TRAE data |
-| `trae-mgr help` | Display help information |
-
----
-
-## 🪟 Windows Support (PowerShell)
-
-TRAE Manager functionality is available on Windows via a PowerShell script.
-
-### Installation
+### 🪟 Windows (PowerShell)
 
 1. Download `scripts/windows/trae-mgr.ps1`.
-2. Open PowerShell as Administrator (recommended for first run).
-3. Allow script execution: `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser`
+2. Open **PowerShell** as Administrator (recommended for first run).
+3. Allow script execution if needed:
+   ```powershell
+   Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+   ```
+4. Run the script:
+   ```powershell
+   .\trae-mgr.ps1 help
+   ```
 
-### Usage
+---
 
-```powershell
-# Save current session
-.\trae-mgr.ps1 save my_google_account
+## 🎮 Usage Guide
 
-# Switch profile (will restart TRAE)
-.\trae-mgr.ps1 switch my_google_account
+### macOS Menu Bar App
 
-# List profiles
-.\trae-mgr.ps1 list
+1. **Check Status**: Click the menu bar icon to see your current profile and TRAE running status.
+2. **Save Session**: Click **"Save Current Session..."** to save your current working state as a new profile (e.g., `work_account`).
+3. **Switch**: Select any saved profile from the list to switch. **TRAE will restart automatically.**
+4. **Manage**: You can Create, Rename, Duplicate, or Delete profiles directly from the menu.
+5. **Auto-Start**: Go to **Settings > Launch at Login** to have TRAE Manager ready when you start your Mac.
+
+### Command Line Interface (CLI)
+
+Both macOS (`trae-mgr`) and Windows (`trae-mgr.ps1`) support the same command structure.
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `save` | Save current TRAE data as a named profile | `trae-mgr save google_acc` |
+| `create` | Create a brand new, empty profile | `trae-mgr create fresh_start` |
+| `switch` | Switch to a specific profile (Restarts TRAE) | `trae-mgr switch google_acc` |
+| `list` | Show all saved profiles and their sizes | `trae-mgr list` |
+| `current` | Display the name of the active profile | `trae-mgr current` |
+| `delete` | Remove a profile permanently | `trae-mgr delete old_acc` |
+| `backup` | Backup the original TRAE data | `trae-mgr backup` |
+
+#### Example Workflow
+```bash
+# 1. Save your existing main account
+trae-mgr save main_account
+
+# 2. Create a new profile for a second account
+trae-mgr create second_account
+
+# 3. Switch to the new account (TRAE restarts, ask you to login)
+trae-mgr switch second_account
+
+# ... Login with your second email in TRAE ...
+
+# 4. Switch back anytime
+trae-mgr switch main_account
 ```
 
 ---
 
 ## 🔧 How It Works
 
-TRAE Manager uses a **profile-based symlink approach**:
+TRAE Manager uses a **Symbolic Link (Symlink)** strategy to manage your data without moving gigabytes of files around constantly.
 
-1. Each profile is a complete copy of TRAE's data directory
-2. The actual TRAE data path (`~/Library/Application Support/Trae`) becomes a symlink
-3. Switching profiles = updating the symlink target
+1. **Storage**: All your profiles are stored in `~/.trae-manager/profiles/`.
+2. **Linking**: The actual TRAE data directory (`~/Library/Application Support/Trae` on Mac, `%APPDATA%\Trae` on Windows) is replaced by a link pointing to the active profile folder.
+3. **Switching**: When you switch profiles, the tool simply updates where the link points to.
 
+Reference path structure:
 ```
 ~/.trae-manager/profiles/
-├── account_google_1/    # Profile 1 (complete TRAE data)
-├── account_google_2/    # Profile 2 (complete TRAE data)
-└── default/             # Backup of original data
+├── main_account/       <-- Profile A data
+├── second_account/     <-- Profile B data
+└── default/            <-- Original Backup
 
-~/Library/Application Support/Trae  →  ~/.trae-manager/profiles/account_google_1
+# The link:
+Actual_Trae_Path  ➡️  ~/.trae-manager/profiles/main_account
 ```
 
 ---
 
-## ⚠️ Important Notes
+## ❓ FAQ
 
-1. **TRAE will restart** when switching profiles (automatic)
-2. **Backup your data** before first use
-3. Requires **macOS 13.0+** (Ventura or later)
-4. First switch will automatically backup your original data as `default` profile
+**Q: Will I lose my data?**
+A: No. When you first run a switch command, TRAE Manager automatically backs up your existing data to a profile named `default` (or `default` folder). However, we always recommend making a manual backup if your data is critical.
 
----
+**Q: Can I run this while TRAE is open?**
+A: The tool will automatically close TRAE before switching profiles to prevent data corruption. It will then restart TRAE for you.
 
-## 🛠️ Development
-
-See [DEVELOPMENT_PLAN.md](./DEVELOPMENT_PLAN.md) for detailed development roadmap.
-
-### Project Structure
-
-```
-trae-manager/
-├── README.md                 # This file
-├── DEVELOPMENT_PLAN.md       # Development roadmap
-├── scripts/
-│   └── trae-mgr              # CLI tool (Bash)
-└── swift/
-    └── TraeManager/
-        ├── Package.swift
-        ├── build.sh
-        └── Sources/
-            ├── TraeManagerApp.swift
-            └── ProfileManager.swift
-```
+**Q: Where are my profiles stored?**
+A: 
+- macOS: `~/.trae-manager/profiles/`
+- Windows: `C:\Users\<User>\.trae-manager\profiles\`
 
 ---
 
 ## 📜 License
 
-MIT License
+Distributed under the **MIT License**. See `LICENSE` for more information.
 
 ---
 
 ## 🙏 Acknowledgments
 
-Inspired by [Antigravity Manager](https://github.com/Draculabo/AntigravityManager) and [antigravity-switcher](https://github.com/nhonn/antigravity-switcher).
+- Inspired by the concept of *Antigravity Manager*.
+- Built with **SwiftUI** for macOS and **PowerShell** for Windows.
