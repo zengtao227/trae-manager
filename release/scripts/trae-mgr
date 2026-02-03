@@ -1,0 +1,447 @@
+#!/bin/bash
+
+# ============================================================================
+# TRAE Manager - Multi-Account Profile Switcher for TRAE IDE
+# ============================================================================
+# A tool to manage multiple TRAE accounts and preserve chat history
+# Inspired by Antigravity Manager
+# ============================================================================
+
+set -e
+
+# --- Configuration ---
+TRAE_APP_NAME="Trae"
+TRAE_DATA_PATH="$HOME/Library/Application Support/Trae"
+MGR_ROOT="$HOME/.trae-manager"
+PROFILES_DIR="$MGR_ROOT/profiles"
+CONFIG_FILE="$MGR_ROOT/config.json"
+CURRENT_FILE="$MGR_ROOT/current_profile"
+
+# --- Colors ---
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+BOLD='\033[1m'
+
+# --- Helper Functions ---
+
+print_header() {
+    echo ""
+    echo -e "${CYAN}╔════════════════════════════════════════╗${NC}"
+    echo -e "${CYAN}║${NC}       ${BOLD}TRAE Manager${NC} v1.0.0            ${CYAN}║${NC}"
+    echo -e "${CYAN}╚════════════════════════════════════════╝${NC}"
+    echo ""
+}
+
+print_success() {
+    echo -e "${GREEN}✓${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}✗${NC} $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}!${NC} $1"
+}
+
+print_info() {
+    echo -e "${BLUE}ℹ${NC} $1"
+}
+
+# Initialize manager directories
+init_manager() {
+    mkdir -p "$PROFILES_DIR"
+    if [ ! -f "$CURRENT_FILE" ]; then
+        echo "default" > "$CURRENT_FILE"
+    fi
+}
+
+# Check if TRAE is running
+is_trae_running() {
+    pgrep -x "$TRAE_APP_NAME" > /dev/null 2>&1
+}
+
+# Stop TRAE application
+stop_trae() {
+    if is_trae_running; then
+        print_info "Stopping TRAE..."
+        pkill -x "$TRAE_APP_NAME" 2>/dev/null || true
+        sleep 2
+        
+        # Force kill if still running
+        if is_trae_running; then
+            print_warning "Force killing TRAE..."
+            pkill -9 -x "$TRAE_APP_NAME" 2>/dev/null || true
+            sleep 1
+        fi
+        
+        if is_trae_running; then
+            print_error "Failed to stop TRAE. Please close it manually."
+            exit 1
+        fi
+        print_success "TRAE stopped"
+    fi
+}
+
+# Start TRAE application
+start_trae() {
+    print_info "Starting TRAE..."
+    open -a "$TRAE_APP_NAME" 2>/dev/null || {
+        print_warning "Could not auto-start TRAE. Please start it manually."
+    }
+}
+
+# Get current profile name
+get_current_profile() {
+    if [ -L "$TRAE_DATA_PATH" ]; then
+        local target=$(readlink "$TRAE_DATA_PATH")
+        basename "$target"
+    elif [ -d "$TRAE_DATA_PATH" ]; then
+        echo "(original - not managed)"
+    else
+        echo "(none)"
+    fi
+}
+
+# Calculate directory size
+get_dir_size() {
+    local dir=$1
+    if [ -d "$dir" ]; then
+        du -sh "$dir" 2>/dev/null | cut -f1
+    else
+        echo "0B"
+    fi
+}
+
+# --- Commands ---
+
+cmd_help() {
+    print_header
+    echo -e "${BOLD}Usage:${NC} trae-mgr <command> [options]"
+    echo ""
+    echo -e "${BOLD}Commands:${NC}"
+    echo -e "  ${CYAN}list${NC}              List all profiles"
+    echo -e "  ${CYAN}create${NC} <name>     Create an empty profile"
+    echo -e "  ${CYAN}save${NC} <name>       Save current session as a new profile"
+    echo -e "  ${CYAN}switch${NC} <name>     Switch to a profile (restarts TRAE)"
+    echo -e "  ${CYAN}delete${NC} <name>     Delete a profile"
+    echo -e "  ${CYAN}current${NC}           Show current active profile"
+    echo -e "  ${CYAN}backup${NC}            Backup original TRAE data"
+    echo -e "  ${CYAN}restore${NC}           Restore original TRAE data"
+    echo -e "  ${CYAN}help${NC}              Show this help message"
+    echo ""
+    echo -e "${BOLD}Examples:${NC}"
+    echo "  trae-mgr save my_google_account"
+    echo "  trae-mgr switch another_account"
+    echo ""
+}
+
+cmd_list() {
+    print_header
+    echo -e "${BOLD}Saved Profiles:${NC}"
+    echo ""
+    
+    local current=$(get_current_profile)
+    local has_profiles=false
+    
+    if [ -d "$PROFILES_DIR" ]; then
+        for profile in "$PROFILES_DIR"/*/; do
+            if [ -d "$profile" ]; then
+                has_profiles=true
+                local name=$(basename "$profile")
+                local size=$(get_dir_size "$profile")
+                
+                if [ "$name" = "$current" ]; then
+                    echo -e "  ${GREEN}●${NC} ${BOLD}$name${NC} ${GREEN}(active)${NC} - $size"
+                else
+                    echo -e "  ${BLUE}○${NC} $name - $size"
+                fi
+            fi
+        done
+    fi
+    
+    if [ "$has_profiles" = false ]; then
+        echo -e "  ${YELLOW}No profiles found.${NC}"
+        echo ""
+        echo "  Use 'trae-mgr save <name>' to save current session as a profile."
+    fi
+    
+    echo ""
+    echo -e "${BOLD}Current:${NC} $current"
+    echo ""
+}
+
+cmd_create() {
+    local name=$1
+    
+    if [ -z "$name" ]; then
+        print_error "Profile name required"
+        echo "Usage: trae-mgr create <name>"
+        exit 1
+    fi
+    
+    # Validate name (alphanumeric, underscore, hyphen only)
+    if [[ ! "$name" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+        print_error "Invalid profile name. Use only letters, numbers, underscores, and hyphens."
+        exit 1
+    fi
+    
+    local profile_path="$PROFILES_DIR/$name"
+    
+    if [ -d "$profile_path" ]; then
+        print_error "Profile '$name' already exists"
+        exit 1
+    fi
+    
+    print_info "Creating empty profile '$name'..."
+    mkdir -p "$profile_path"
+    
+    print_success "Profile '$name' created"
+    echo ""
+    echo "Next steps:"
+    echo "  1. Run: trae-mgr switch $name"
+    echo "  2. Login to TRAE with your account"
+    echo "  3. Your session will be saved in this profile"
+}
+
+cmd_save() {
+    local name=$1
+    
+    if [ -z "$name" ]; then
+        print_error "Profile name required"
+        echo "Usage: trae-mgr save <name>"
+        exit 1
+    fi
+    
+    # Validate name
+    if [[ ! "$name" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+        print_error "Invalid profile name. Use only letters, numbers, underscores, and hyphens."
+        exit 1
+    fi
+    
+    local profile_path="$PROFILES_DIR/$name"
+    
+    if [ -d "$profile_path" ]; then
+        print_warning "Profile '$name' already exists. Overwrite? (y/N)"
+        read -r response
+        if [[ ! "$response" =~ ^[Yy]$ ]]; then
+            print_info "Cancelled"
+            exit 0
+        fi
+        rm -rf "$profile_path"
+    fi
+    
+    # Check if TRAE data exists
+    if [ -L "$TRAE_DATA_PATH" ]; then
+        # Currently using symlink, get actual data
+        local current_target=$(readlink "$TRAE_DATA_PATH")
+        if [ ! -d "$current_target" ]; then
+            print_error "Current profile data not found"
+            exit 1
+        fi
+        print_info "Copying current session to profile '$name'..."
+        cp -R "$current_target" "$profile_path"
+    elif [ -d "$TRAE_DATA_PATH" ]; then
+        print_info "Copying TRAE data to profile '$name'..."
+        cp -R "$TRAE_DATA_PATH" "$profile_path"
+    else
+        print_error "No TRAE data found. Please run TRAE and login first."
+        exit 1
+    fi
+    
+    local size=$(get_dir_size "$profile_path")
+    print_success "Profile '$name' saved ($size)"
+}
+
+cmd_switch() {
+    local name=$1
+    
+    if [ -z "$name" ]; then
+        print_error "Profile name required"
+        echo "Usage: trae-mgr switch <name>"
+        exit 1
+    fi
+    
+    local profile_path="$PROFILES_DIR/$name"
+    
+    if [ ! -d "$profile_path" ]; then
+        print_error "Profile '$name' not found"
+        echo "Available profiles:"
+        ls "$PROFILES_DIR" 2>/dev/null || echo "  (none)"
+        exit 1
+    fi
+    
+    local current=$(get_current_profile)
+    if [ "$name" = "$current" ]; then
+        print_info "Already using profile '$name'"
+        exit 0
+    fi
+    
+    print_info "Switching to profile '$name'..."
+    
+    # Stop TRAE
+    stop_trae
+    
+    # Handle current data
+    if [ -d "$TRAE_DATA_PATH" ] && [ ! -L "$TRAE_DATA_PATH" ]; then
+        # First time: backup original data
+        print_info "Backing up original TRAE data to 'default' profile..."
+        if [ ! -d "$PROFILES_DIR/default" ]; then
+            mv "$TRAE_DATA_PATH" "$PROFILES_DIR/default"
+        else
+            print_warning "Default profile exists. Removing original data..."
+            rm -rf "$TRAE_DATA_PATH"
+        fi
+    elif [ -L "$TRAE_DATA_PATH" ]; then
+        # Already using symlink, just remove it
+        rm "$TRAE_DATA_PATH"
+    fi
+    
+    # Create symlink
+    ln -s "$profile_path" "$TRAE_DATA_PATH"
+    echo "$name" > "$CURRENT_FILE"
+    
+    print_success "Switched to profile '$name'"
+    
+    # Start TRAE
+    start_trae
+}
+
+cmd_delete() {
+    local name=$1
+    
+    if [ -z "$name" ]; then
+        print_error "Profile name required"
+        echo "Usage: trae-mgr delete <name>"
+        exit 1
+    fi
+    
+    local profile_path="$PROFILES_DIR/$name"
+    
+    if [ ! -d "$profile_path" ]; then
+        print_error "Profile '$name' not found"
+        exit 1
+    fi
+    
+    local current=$(get_current_profile)
+    if [ "$name" = "$current" ]; then
+        print_error "Cannot delete active profile. Switch to another profile first."
+        exit 1
+    fi
+    
+    local size=$(get_dir_size "$profile_path")
+    print_warning "Delete profile '$name' ($size)? This cannot be undone. (y/N)"
+    read -r response
+    if [[ ! "$response" =~ ^[Yy]$ ]]; then
+        print_info "Cancelled"
+        exit 0
+    fi
+    
+    rm -rf "$profile_path"
+    print_success "Profile '$name' deleted"
+}
+
+cmd_current() {
+    local current=$(get_current_profile)
+    echo "$current"
+}
+
+cmd_backup() {
+    if [ ! -d "$TRAE_DATA_PATH" ] || [ -L "$TRAE_DATA_PATH" ]; then
+        print_error "No original TRAE data to backup (already using profiles)"
+        exit 1
+    fi
+    
+    print_info "Backing up original TRAE data..."
+    
+    if [ -d "$PROFILES_DIR/original_backup" ]; then
+        print_warning "Backup already exists. Overwrite? (y/N)"
+        read -r response
+        if [[ ! "$response" =~ ^[Yy]$ ]]; then
+            print_info "Cancelled"
+            exit 0
+        fi
+        rm -rf "$PROFILES_DIR/original_backup"
+    fi
+    
+    cp -R "$TRAE_DATA_PATH" "$PROFILES_DIR/original_backup"
+    local size=$(get_dir_size "$PROFILES_DIR/original_backup")
+    print_success "Backup created ($size)"
+}
+
+cmd_restore() {
+    if [ ! -d "$PROFILES_DIR/default" ] && [ ! -d "$PROFILES_DIR/original_backup" ]; then
+        print_error "No backup found to restore"
+        exit 1
+    fi
+    
+    local backup_path="$PROFILES_DIR/original_backup"
+    if [ ! -d "$backup_path" ]; then
+        backup_path="$PROFILES_DIR/default"
+    fi
+    
+    print_warning "This will restore original TRAE data and remove profile management. Continue? (y/N)"
+    read -r response
+    if [[ ! "$response" =~ ^[Yy]$ ]]; then
+        print_info "Cancelled"
+        exit 0
+    fi
+    
+    stop_trae
+    
+    # Remove symlink or current data
+    if [ -L "$TRAE_DATA_PATH" ]; then
+        rm "$TRAE_DATA_PATH"
+    elif [ -d "$TRAE_DATA_PATH" ]; then
+        rm -rf "$TRAE_DATA_PATH"
+    fi
+    
+    # Restore backup
+    cp -R "$backup_path" "$TRAE_DATA_PATH"
+    
+    print_success "Original TRAE data restored"
+    start_trae
+}
+
+# --- Main ---
+
+init_manager
+
+case "${1:-help}" in
+    "list"|"ls"|"-l")
+        cmd_list
+        ;;
+    "create"|"new")
+        cmd_create "$2"
+        ;;
+    "save"|"snapshot")
+        cmd_save "$2"
+        ;;
+    "switch"|"use"|"sw")
+        cmd_switch "$2"
+        ;;
+    "delete"|"rm"|"remove")
+        cmd_delete "$2"
+        ;;
+    "current"|"status")
+        cmd_current
+        ;;
+    "backup")
+        cmd_backup
+        ;;
+    "restore")
+        cmd_restore
+        ;;
+    "help"|"-h"|"--help")
+        cmd_help
+        ;;
+    *)
+        print_error "Unknown command: $1"
+        echo "Run 'trae-mgr help' for usage."
+        exit 1
+        ;;
+esac

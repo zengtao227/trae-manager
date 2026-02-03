@@ -1,6 +1,7 @@
 # TRAE Manager
 
-🔄 A macOS menu bar tool for managing multiple TRAE IDE accounts and preserving chat history.
+🔄 A tool for managing multiple TRAE IDE accounts and preserving chat history. 
+**Available for macOS (Menu Bar App & CLI) and Windows (PowerShell CLI).**
 
 ## ✨ Features
 
@@ -11,7 +12,13 @@
 
 ---
 
-## 🖥️ Menu Bar App (Recommended)
+## 📦 Downloads
+
+Check the [**Releases**](https://github.com/zengtao227/trae-manager/releases) page (if available) or look into the `release/` directory in the repository.
+
+---
+
+## 🖥️ Menu Bar App (macOS Only)
 
 A native macOS menu bar application for the best experience.
 
@@ -87,6 +94,31 @@ trae-mgr current
 | `trae-mgr backup` | Backup original TRAE data |
 | `trae-mgr restore` | Restore original TRAE data |
 | `trae-mgr help` | Display help information |
+
+---
+
+## 🪟 Windows Support (PowerShell)
+
+TRAE Manager functionality is available on Windows via a PowerShell script.
+
+### Installation
+
+1. Download `scripts/windows/trae-mgr.ps1`.
+2. Open PowerShell as Administrator (recommended for first run).
+3. Allow script execution: `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser`
+
+### Usage
+
+```powershell
+# Save current session
+.\trae-mgr.ps1 save my_google_account
+
+# Switch profile (will restart TRAE)
+.\trae-mgr.ps1 switch my_google_account
+
+# List profiles
+.\trae-mgr.ps1 list
+```
 
 ---
 
